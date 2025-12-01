@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  notification-sender-service:
+    image: ghcr.io/tickatch/notification-sender-service:latest
+    container_name: tickatch-notification-sender-service
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=8080
+      - SPRING_PROFILES_ACTIVE=prod
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server-1:3150/eureka1/eureka/,http://eureka-server-2:3151/eureka2/eureka/
+      - SPRING_CLOUD_CONFIG_URI=http://config-server:3100
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "8091:8080"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true

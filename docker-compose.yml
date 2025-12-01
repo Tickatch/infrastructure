@@ -1,0 +1,143 @@
+# infrastructure/docker-compose.yml
+version: '3.8'
+
+services:
+  # ============================================
+  # NGINX - Reverse Proxy
+  # ============================================
+  nginx:
+    extends:
+      file: ./nginx/docker-compose.yml
+      service: nginx
+    depends_on:
+      - eureka-server-1
+      - eureka-server-2
+      - config-server
+
+  # ============================================
+  # EUREKA SERVER - Service Discovery (HA)
+  # ============================================
+  eureka-server-1:
+    extends:
+      file: ./eureka-server/docker-compose.yml
+      service: eureka-server-1
+
+  eureka-server-2:
+    extends:
+      file: ./eureka-server/docker-compose.yml
+      service: eureka-server-2
+
+  # ============================================
+  # CONFIG SERVER - Centralized Configuration
+  # ============================================
+  config-server:
+    extends:
+      file: ./config-server/docker-compose.yml
+      service: config-server
+    depends_on:
+      - rabbitmq
+      - eureka-server-1
+      - eureka-server-2
+
+  # ============================================
+  # RABBITMQ - Message Broker
+  # ============================================
+  rabbitmq:
+    extends:
+      file: ./rabbitmq/docker-compose.yml
+      service: rabbitmq
+
+  # ============================================
+  # KAFKA - Event Streaming
+  # ============================================
+  kafka:
+    extends:
+      file: ./kafka/docker-compose.yml
+      service: kafka
+
+  # ============================================
+  # ELK STACK - Logging
+  # ============================================
+  elasticsearch:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: elasticsearch
+
+  logstash:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: logstash
+    depends_on:
+      - elasticsearch
+      - kafka
+
+  kibana:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: kibana
+    depends_on:
+      - elasticsearch
+
+  # ============================================
+  # ZIPKIN - Distributed Tracing
+  # ============================================
+  zipkin:
+    extends:
+      file: ./zipkin/docker-compose.yml
+      service: zipkin
+
+  # ============================================
+  # MONITORING - Prometheus & Grafana
+  # ============================================
+  prometheus:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: prometheus
+
+  pushgateway:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: pushgateway
+
+  grafana:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: grafana
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: alertmanager
+
+  # ============================================
+  # NOTIFICATION SERVICE
+  # ============================================
+  notification-service:
+    extends:
+      file: ./notification-service/docker-compose.yml
+      service: notification-service
+    depends_on:
+      - kafka
+      - rabbitmq
+      - config-server
+      - eureka-server-1
+
+  # ============================================
+  # NOTIFICATION SENDER SERVICE
+  # ============================================
+  notification-sender-service:
+    extends:
+      file: ./notification-sender-service/docker-compose.yml
+      service: notification-sender-service
+    depends_on:
+      - kafka
+      - rabbitmq
+      - config-server
+      - eureka-server-1
+
+networks:
+  tickatch-network:
+    driver: bridge
+    name: tickatch-network

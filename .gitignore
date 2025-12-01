@@ -1,0 +1,29 @@
+# Environment files
+.env
+**/.env
+
+# Data directories
+data/
+**/data/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# SSL certificates (keep example/placeholder only)
+*.pem
+*.key
+*.crt
+certs/
+
+# Temporary files
+*.tmp
+*.swp

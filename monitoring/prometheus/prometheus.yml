@@ -1,0 +1,90 @@
+global:
+  scrape_interval: 60s
+  evaluation_interval: 60s
+
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets:
+            - alertmanager:9093
+      path_prefix: /alertmanager
+
+rule_files:
+  - "service-alerts.yml"
+
+scrape_configs:
+  # ========================================
+  # Prometheus 자체 모니터링
+  # ========================================
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # ========================================
+  # Pushgateway (Push Mode)
+  # ========================================
+  - job_name: 'pushgateway'
+    honor_labels: true
+    static_configs:
+      - targets: ['pushgateway:9091']
+
+  # ========================================
+  # Zipkin
+  # ========================================
+  - job_name: 'zipkin'
+    metrics_path: '/prometheus'
+    static_configs:
+      - targets: ['tickatch-zipkin:9411']
+
+  # ========================================
+  # Eureka Servers
+  # ========================================
+  - job_name: 'eureka-server-1'
+    metrics_path: '/eureka1/actuator/prometheus'
+    static_configs:
+      - targets: ['eureka-server-1:3150']
+
+  - job_name: 'eureka-server-2'
+    metrics_path: '/eureka2/actuator/prometheus'
+    static_configs:
+      - targets: ['eureka-server-2:3151']
+
+  # ========================================
+  # Config Server
+  # ========================================
+  - job_name: 'config-server'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config-server:3100']
+
+  # ========================================
+  # RabbitMQ (Prometheus 플러그인 활성화 시)
+  # ========================================
+  - job_name: 'rabbitmq'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+
+  # ========================================
+  # Eureka 기반 서비스 발견 (마이크로서비스)
+  # ========================================
+  - job_name: 'microservices'
+    eureka_sd_configs:
+      - server: 'http://eureka-server-1:3150/eureka1/eureka'
+        refresh_interval: 30s
+    relabel_configs:
+      # 로컬/외부 IP는 scrape 대상에서 제외 (Pushgateway 사용)
+      - source_labels: [__address__]
+        regex: '192\.168\..*'
+        action: drop
+      - source_labels: [__address__]
+        regex: '10\..*'
+        action: drop
+      - source_labels: [__meta_eureka_app_name]
+        target_label: application
+      - source_labels: [__meta_eureka_app_instance_metadata_prometheus_path]
+        target_label: __metrics_path__
+        regex: (.+)
+      - source_labels: [__address__, __meta_eureka_app_instance_metadata_prometheus_port]
+        target_label: __address__
+        regex: ([^:]+)(?::\d+)?;(\d+)
+        replacement: $1:$2

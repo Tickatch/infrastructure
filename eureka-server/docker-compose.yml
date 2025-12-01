@@ -1,0 +1,50 @@
+version: '3.8'
+
+services:
+  eureka-server-1:
+    image: ghcr.io/tickatch/eureka-server:latest
+    container_name: tickatch-eureka-1
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=3150
+      - SERVER_SERVLET_CONTEXT_PATH=/eureka1
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server-1
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server-2:3151/eureka2/eureka/
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "3150:3150"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3150/eureka1/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  eureka-server-2:
+    image: ghcr.io/tickatch/eureka-server:latest
+    container_name: tickatch-eureka-2
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=3151
+      - SERVER_SERVLET_CONTEXT_PATH=/eureka2
+      - EUREKA_INSTANCE_HOSTNAME=eureka-server-2
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server-1:3150/eureka1/eureka/
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "3151:3151"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3151/eureka2/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true

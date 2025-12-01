@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: tickatch-rabbitmq
+    hostname: tickatch-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-tickatch}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-tickatch123}
+      - RABBITMQ_DEFAULT_VHOST=/
+      - RABBITMQ_ERLANG_COOKIE=${RABBITMQ_COOKIE:-tickatch-secret-cookie-key}
+    ports:
+      - "9092:5672"    # AMQP
+      - "15672:15672"  # Management UI
+      - "15692:15692"  # Prometheus metrics
+    volumes:
+      - ../data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true
