@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  gateway-server-1:
+    image: ghcr.io/tickatch/gateway-server:latest
+    container_name: tickatch-gateway-1
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=8080
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server-1:3150/eureka/,http://eureka-server-2:3151/eureka/
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "8080:8080"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  gateway-server-2:
+    image: ghcr.io/tickatch/gateway-server:latest
+    container_name: tickatch-gateway-2
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=8081
+      - EUREKA_CLIENT_SERVICE_URL_DEFAULTZONE=http://eureka-server-1:3150/eureka/,http://eureka-server-2:3151/eureka/
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "8081:8081"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true

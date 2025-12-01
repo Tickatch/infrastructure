@@ -1,0 +1,107 @@
+# infrastructure/docker-compose.yml
+version: '3.8'
+
+services:
+  # ============ NGINX ============
+  nginx:
+    extends:
+      file: ./nginx/docker-compose.yml
+      service: nginx
+    depends_on:
+      - eureka-server-1
+      - eureka-server-2
+      - config-server
+      - gateway-server-1
+      - gateway-server-2
+
+  # ============ GATEWAY SERVER ============
+  gateway-server-1:
+    extends:
+      file: ./gateway-server/docker-compose.yml
+      service: gateway-server-1
+    depends_on:
+      - eureka-server-1
+      - eureka-server-2
+      - config-server
+
+  gateway-server-2:
+    extends:
+      file: ./gateway-server/docker-compose.yml
+      service: gateway-server-2
+    depends_on:
+      - eureka-server-1
+      - eureka-server-2
+      - config-server
+
+  # ============ EUREKA SERVER ============
+  eureka-server-1:
+    extends:
+      file: ./eureka-server/docker-compose.yml
+      service: eureka-server-1
+
+  eureka-server-2:
+    extends:
+      file: ./eureka-server/docker-compose.yml
+      service: eureka-server-2
+
+  # ============ CONFIG SERVER ============
+  config-server:
+    extends:
+      file: ./config-server/docker-compose.yml
+      service: config-server
+    depends_on:
+      - rabbitmq
+
+  # ============ ELK STACK ============
+  elasticsearch:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: elasticsearch
+
+  logstash:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: logstash
+    depends_on:
+      - elasticsearch
+
+  kibana:
+    extends:
+      file: ./elk/docker-compose.yml
+      service: kibana
+    depends_on:
+      - elasticsearch
+
+  # ============ RABBITMQ ============
+  rabbitmq:
+    extends:
+      file: ./rabbitmq/docker-compose.yml
+      service: rabbitmq
+
+  # ============ MONITORING ============
+  prometheus:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: prometheus
+
+  pushgateway:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: pushgateway
+
+  grafana:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: grafana
+    depends_on:
+      - prometheus
+
+  alertmanager:
+    extends:
+      file: ./monitoring/docker-compose.yml
+      service: alertmanager
+
+networks:
+  tickatch-network:
+    driver: bridge
+    name: tickatch-network

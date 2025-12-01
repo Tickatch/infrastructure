@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: tickatch-rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=tickatch
+      - RABBITMQ_DEFAULT_PASS=tickatch123
+      - RABBITMQ_DEFAULT_VHOST=/
+    ports:
+      - "9092:5672"
+      - "15672:15672"
+    volumes:
+      - ../data/rabbitmq:/var/lib/rabbitmq
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "check_running"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true

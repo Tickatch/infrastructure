@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  config-server:
+    image: ghcr.io/tickatch/config-server:latest
+    container_name: tickatch-config
+    env_file:
+      - .env
+    environment:
+      - SERVER_PORT=3100
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server-1:3150/eureka/,http://eureka-server-2:3151/eureka/
+      - SPRING_RABBITMQ_HOST=rabbitmq
+      - LOGSTASH_HOST=logstash:5000
+    ports:
+      - "3100:3100"
+    networks:
+      - tickatch-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3100/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+networks:
+  tickatch-network:
+    external: true
