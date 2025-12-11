@@ -19,15 +19,24 @@ route:
 receivers:
   - name: 'default-receiver'
     # Slack, Email, Webhook 등 설정 추가
-    # slack_configs:
-    #   - api_url: 'YOUR_SLACK_WEBHOOK_URL'
-    #     channel: '#alerts'
+    slack_configs:
+      - api_url: '${DEFAULT_SLACK}'
+        channel: '#default-notification'
+        send_resolved: true
 
   - name: 'critical-receiver'
     # 긴급 알림용
+    slack_configs:
+      - api_url: '${CRITICAL_SLACK}'
+        channel: '#critical-notification'
+        send_resolved: true
 
   - name: 'warning-receiver'
     # 경고 알림용
+    slack_configs:
+      - api_url: '${WARNING_SLACK}'
+        channel: '#warning-notification'
+        send_resolved: true
 
 inhibit_rules:
   - source_match:
