@@ -20,7 +20,7 @@ groups:
       - alert: ServiceRestarted
         expr: changes(process_start_time_seconds[1m]) > 0
         labels:
-          severity: default
+          severity: info
         annotations:
           description: "Service {{ $labels.application }} restarted."
 
