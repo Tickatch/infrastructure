@@ -60,6 +60,10 @@ services:
     networks:
       - tickatch-network
     restart: unless-stopped
+    environment:
+      DEFAULT_SLACK: ${DEFAULT_SLACK}
+      CRITICAL_SLACK: ${CRITICAL_SLACK}
+      WARNING_SLACK: ${WARNING_SLACK}
 
 networks:
   tickatch-network:
