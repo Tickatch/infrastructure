@@ -22,6 +22,18 @@ receivers:
     slack_configs:
       - api_url: '${DEFAULT_SLACK}'
         channel: '#default-notification'
+        title: ":information_source: [{{ .Status | toUpper }}] {{ .Labels.alertname }}"
+        text: |
+          *Alert:* `{{ .Labels.alertname }}`
+          *Severity:* `{{ .Labels.severity }}`
+          *Service:* `{{ .Labels.application }}`
+          *Instance:* `{{ .Labels.instance }}`
+          *Status:* `{{ .Status }}`
+          *Description:* {{ .Annotations.description }}
+          
+          *Started At:* {{ .StartsAt | date "2006-01-02 15:04:05 MST" "Asia/Seoul" }}
+          
+          <{{ .GeneratorURL }}|View in Prometheus>
         send_resolved: true
 
   - name: 'critical-receiver'
@@ -29,6 +41,15 @@ receivers:
     slack_configs:
       - api_url: '${CRITICAL_SLACK}'
         channel: '#critical-notification'
+        title: ":rotating_light: [{{ .Status | toUpper }}] {{ .Labels.alertname }} ({{ .Labels.severity }})"
+        text: |
+          *Service:* `{{ .Labels.application }}`
+          *Instance:* `{{ .Labels.instance }}`
+          *Status:* `{{ .Status }}`
+          *Description:* {{ .Annotations.description }}
+          *Started At:* {{ .StartsAt | date "2006-01-02 15:04:05 MST" "Asia/Seoul" }}
+            
+          <{{ .GeneratorURL }}|View in Prometheus>
         send_resolved: true
 
   - name: 'warning-receiver'
@@ -36,6 +57,15 @@ receivers:
     slack_configs:
       - api_url: '${WARNING_SLACK}'
         channel: '#warning-notification'
+        title: ":warning: [{{ .Status | toUpper }}] {{ .Labels.alertname }} ({{ .Labels.severity }})"
+        text: |
+          *Service:* `{{ .Labels.application }}`
+          *Instance:* `{{ .Labels.instance }}`
+          *Status:* `{{ .Status }}`
+          *Description:* {{ .Annotations.description }}
+          *Started At:* {{ .StartsAt | date "2006-01-02 15:04:05 MST" "Asia/Seoul" }}
+          
+          <{{ .GeneratorURL }}|View in Prometheus>
         send_resolved: true
 
 inhibit_rules:
